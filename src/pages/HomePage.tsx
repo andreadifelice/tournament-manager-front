@@ -1,10 +1,11 @@
-import { Button } from "@/components/ui/button"
 
 const HomePage = () => {
     return (
-        <div className="h-screen w-screen flex items-center justify-center">
-            <Button variant='default'>Bottone di prova</Button>
-        </div>
+        <>
+            <div className="px-4 min-h-lvh max-w-4xl mx-auto flex items-center justify-center bg-amber-400">
+                home page
+            </div>
+        </>
     )
 }
 
