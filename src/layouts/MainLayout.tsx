@@ -12,8 +12,8 @@ const MainLayout = () => {
                 <p className="font-bold text-xl pl-2"><NavLink to={'/'}>TournamentManager</NavLink></p>
                 <NavMenus />
                 <Button>
-                    Crea Squadra
-                    <Plus></Plus>
+                    Crea un torneo
+                    <Plus size={'icon'}/>
                 </Button>
             </div>
         </header>
