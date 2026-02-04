@@ -1,6 +1,5 @@
 import { NavLink } from "react-router"
 import { Button } from "../ui/button"
-import { Plus } from "lucide-react"
 
 const NavMenus = () => {
     // array di oggetti
@@ -28,10 +27,6 @@ const NavMenus = () => {
                     </Button>
                 )}
             </nav>
-            <Button>
-                Crea un torneo
-                <Plus size={'icon'}/>
-            </Button>
         </>
     )
 }
