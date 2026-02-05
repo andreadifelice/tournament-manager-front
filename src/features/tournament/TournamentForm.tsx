@@ -1,19 +1,32 @@
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  ComboboxChips,
+  ComboboxChip,
+  ComboboxChipsInput,
+  useComboboxAnchor,
+} from "@/components/ui/combobox"
 import { TournamentService } from "@/features/tournament/tournament.service"
 import { TeamService } from "@/features/team/team.service"
 import { TournamentTeamService } from "@/features/tournament_teams/tournament_teams.service"
 import type { Team } from "@/features/team/team.type"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const TournamentForm = () => {
+    const anchorRef = useComboboxAnchor()
     const [formData, setFormData] = useState({ name: "", date: "", location: "" })
     const [teams, setTeams] = useState<Team[]>([])
+    const [availableTeams, setAvailableTeams] = useState<Team[]>([])
     const [teamLoading, setTeamLoading] = useState(true)
     const [teamError, setTeamError] = useState<string | null>(null)
-    const [selectedTeamIds, setSelectedTeamIds] = useState<number[]>([])
-    const [teamStatuses, setTeamStatuses] = useState<Record<number, string>>({})
+    const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [success, setSuccess] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -21,9 +34,52 @@ const TournamentForm = () => {
     useEffect(() => {
         const fetchTeams = async () => {
             try {
-                const data = await TeamService.list()
-                setTeams(data)
+                // Carica tutte le squadre
+                const allTeams = await TeamService.list()
+                console.log("Squadre caricate:", allTeams)
+                setTeams(allTeams)
+                
+                // Carica i tornei
+                const tournaments = await TournamentService.list()
+                console.log("Tornei caricati:", tournaments)
+                
+                const usedTeamIds = new Set<number>()
+
+                // Carica tournament_teams per tutti i tornei in parallelo
+                const tournamentTeamsPromises = tournaments.map(t => 
+                    TournamentTeamService.list(t.id).catch(() => [])
+                )
+                
+                const allTournamentTeams = await Promise.all(tournamentTeamsPromises)
+                console.log("Tutti i tournament_teams:", allTournamentTeams)
+                
+                // Estrai gli ID delle squadre
+                for (const ttArray of allTournamentTeams) {
+                    for (const tt of ttArray) {
+                        console.log("Verificando tt.team_id:", tt.team_id, "tipo:", typeof tt.team_id)
+                        
+                        if (tt.team_id) {
+                            // Se è un array
+                            if (Array.isArray(tt.team_id)) {
+                                tt.team_id.forEach((teamId: number) => usedTeamIds.add(teamId))
+                            }
+                            // Se è un numero singolo
+                            else if (typeof tt.team_id === 'number') {
+                                usedTeamIds.add(tt.team_id)
+                            }
+                        }
+                    }
+                }
+                
+                console.log("Team IDs usati:", Array.from(usedTeamIds))
+                
+                // Filtra le squadre disponibili
+                const filtered = allTeams.filter((team) => !usedTeamIds.has(team.id))
+                console.log("availableTeams impostato a:", filtered)
+                
+                setAvailableTeams(filtered)
             } catch (err) {
+                console.error("Errore:", err)
                 setTeamError(err instanceof Error ? err.message : "Errore nel caricamento delle squadre")
             }
             setTeamLoading(false)
@@ -32,28 +88,6 @@ const TournamentForm = () => {
         fetchTeams()
     }, [])
 
-    const handleTeamToggle = (id: number) => {
-        setSelectedTeamIds((prev) => {
-            if (prev.includes(id)) {
-                const filtered = prev.filter((teamId) => teamId !== id)
-                setTeamStatuses((prevStatuses) => {
-                    const newStatuses = { ...prevStatuses }
-                    delete newStatuses[id]
-                    return newStatuses
-                })
-                return filtered
-            } else {
-                setTeamStatuses((prevStatuses) => ({ ...prevStatuses, [id]: "pending" }))
-                return [...prev, id]
-            }
-        })
-    }
-
-    const handleTeamStatusChange = (teamId: number, status: string) => {
-        setTeamStatuses((prev) => ({ ...prev, [teamId]: status }))
-    }
-
-    
     const handleSubmit = async (e: React.FormEvent) => {
         //previene il reload della pagina
         e.preventDefault()
@@ -73,30 +107,17 @@ const TournamentForm = () => {
         setSuccess(null)
 
         try {
-            const newTournament = await TournamentService.create({
+            await TournamentService.create({
                 name: formData.name,
                 date: formData.date,
                 location: formData.location,
-                teams: selectedTeamIds,
+                teams: selectedTeamIds.map(id => parseInt(id, 10)),
             })
-
-            // Crea i tournament_teams per ogni squadra selezionata
-            for (const teamId of selectedTeamIds) {
-                await TournamentTeamService.create({
-                    tournament_id: newTournament.id,
-                    tournament_name: formData.name,
-                    tournament_date: formData.date,
-                    team_id: [teamId],
-                    status: teamStatuses[teamId] || "pending",
-                })
-            }
-
             setFormData({ name: "", date: "", location: "" })
             setSelectedTeamIds([])
-            setTeamStatuses({})
             setSuccess("Torneo creato con successo!")
             setTimeout(() => setSuccess(null), 3000)
-            // Ricarico la pagina una volta creata la squadra
+            // Ricarico la pagina una volta creato il torneo
             window.location.reload()
         } catch (err) {
             setError(err instanceof Error ? err.message : "Errore nella creazione")
@@ -145,54 +166,49 @@ const TournamentForm = () => {
 
                         <Field className="flex flex-col gap-2">
                             <FieldLabel>Squadre partecipanti</FieldLabel>
-                            <div className="flex flex-col gap-2 rounded-md border border-input p-3">
-                                {teamLoading && (
-                                    <p className="text-sm text-muted-foreground">Caricamento squadre...</p>
-                                )}
-                                {teamError && (
-                                    <p className="text-sm text-red-500">{teamError}</p>
-                                )}
-                                {!teamLoading && !teamError && teams.length === 0 && (
-                                    <p className="text-sm text-muted-foreground">Nessuna squadra disponibile</p>
-                                )}
-                                {!teamLoading && !teamError && teams.length > 0 && (
-                                    <div className="flex flex-col gap-2">
-                                        {teams.map((team) => (
-                                            <div key={team.id} className="flex flex-col gap-2 p-2 border border-gray-200 rounded">
-                                                <label className="flex items-center gap-2 text-sm">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="h-4 w-4"
-                                                        checked={selectedTeamIds.includes(team.id)}
-                                                        onChange={() => handleTeamToggle(team.id)}
-                                                        disabled={isSubmitting}
-                                                    />
-                                                    {team.name}
-                                                </label>
-                                                {selectedTeamIds.includes(team.id) && (
-                                                    <div className="ml-6 flex gap-2 items-center text-sm">
-                                                        <label htmlFor={`status-${team.id}`} className="font-medium">
-                                                            Stato:
-                                                        </label>
-                                                        <select
-                                                            id={`status-${team.id}`}
-                                                            value={teamStatuses[team.id] || "pending"}
-                                                            onChange={(e) => handleTeamStatusChange(team.id, e.target.value)}
-                                                            disabled={isSubmitting}
-                                                            className="px-2 py-1 border border-input rounded text-sm"
-                                                        >
-                                                            <option value="pending">In sospeso</option>
-                                                            <option value="active">Attiva</option>
-                                                            <option value="inactive">Inattiva</option>
-                                                            <option value="eliminated">Eliminata</option>
-                                                        </select>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            <Combobox
+                                multiple
+                                items={availableTeams.map(t => t.name)}
+                                value={availableTeams
+                                    .filter(t => selectedTeamIds.includes(t.id.toString()))
+                                    .map(t => t.name)
+                                }
+                                onValueChange={(values) => {
+                                    const newIds = values.map(name => {
+                                        const team = availableTeams.find(t => t.name === name)
+                                        return team?.id.toString() || ""
+                                    }).filter(id => id !== "")
+                                    setSelectedTeamIds(newIds)
+                                }}
+                            >
+                                <ComboboxChips ref={anchorRef} className="w-full">
+                                    <ComboboxValue>
+                                        {(values) => (
+                                            <>
+                                                {values.map((value: string) => (
+                                                    <ComboboxChip key={value}>
+                                                        {value}
+                                                    </ComboboxChip>
+                                                ))}
+                                                <ComboboxChipsInput
+                                                    placeholder={selectedTeamIds.length === 0 ? "Seleziona squadre..." : ""}
+                                                    disabled={isSubmitting}
+                                                />
+                                            </>
+                                        )}
+                                    </ComboboxValue>
+                                </ComboboxChips>
+                                <ComboboxContent anchor={anchorRef}>
+                                    <ComboboxEmpty>Nessuna squadra disponibile</ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(item) => (
+                                            <ComboboxItem key={item} value={item}>
+                                                {item}
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
                         </Field>
                     </FieldGroup>
                 </FieldSet>

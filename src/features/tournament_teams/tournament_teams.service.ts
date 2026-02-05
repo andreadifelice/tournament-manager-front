@@ -23,19 +23,4 @@ export class TournamentTeamService {
         );
         return response;
     }
-
-    static async update(
-        tournamentId: number,
-        teamId: number,
-        data: Partial<TournamentTeam>
-    ): Promise<TournamentTeam> {
-        const updated = await myFetch<ServerTournamentTeam>(
-            `${myEnv.backendApiUrl}/tournaments/${tournamentId}/teams/${teamId}`,
-            {
-                method: 'PUT',
-                body: JSON.stringify(data)
-            }
-        );
-        return updated;
-    }
 }
