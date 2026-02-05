@@ -13,6 +13,7 @@ const TeamForm = () => {
 
     //invio dei dati
     const handleSubmit = async (e: React.FormEvent) => {
+        //previene il reload della pagina
         e.preventDefault()
         
         if (!formData.name || !formData.power) {
@@ -32,7 +33,7 @@ const TeamForm = () => {
             setFormData({ name: "", power: "" })
             setSuccess("Squadra creata con successo!")
             setTimeout(() => setSuccess(null), 3000)
-            // Ricarico la lista una volta creata la squadra
+            // Ricarico la pagina una volta creata la squadra
             window.location.reload()
         } catch (err) {
             setError(err instanceof Error ? err.message : "Errore nella creazione")

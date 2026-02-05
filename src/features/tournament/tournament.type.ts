@@ -12,4 +12,5 @@ export type ServerTournament = {
     name: string;
     date?: string;
     location?: string;
+    teams?: number[];
 }

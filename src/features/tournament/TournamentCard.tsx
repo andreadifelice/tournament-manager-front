@@ -15,11 +15,13 @@ const TournamentCard = () => {
             try {
                 const data = await TournamentService.list()
                 // Filtro tornei passati
-                const pastTournaments = data.filter((tournament) => {
+                /* const pastTournaments = data.filter((tournament) => {
                     if (!tournament.date) return false
                     return new Date(tournament.date) < new Date()
-                })
+                }) 
                 setTournaments(pastTournaments)
+                */
+                setTournaments(data)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Errore nel caricamento")
             } 
@@ -77,10 +79,10 @@ const TournamentCard = () => {
             {tournaments.map((tournament) => (
                 <Item key={tournament.id} variant="outline" className="border-2 border-gray-100 shadow-sm rounded-2xl">
                     <ItemContent className="gap-1">
-                        <ItemTitle className="text-2xl font-bold">{tournament.name}</ItemTitle>
+                        <ItemTitle className="text-xl font-bold">{tournament.name}</ItemTitle>
                         <div className="flex flex-col justify-between">
                             <ItemDescription>{tournament.location}</ItemDescription>
-                            <ItemDescription>{tournament.date}</ItemDescription>
+                            <ItemDescription>Inizio: {tournament.date}</ItemDescription>
                         </div>
                     </ItemContent>
                 </Item>

@@ -11,16 +11,13 @@ const HomePage = () => {
                 <div className="py-10 flex justify-between">
                     <div className="w-100 border-2 border-gray-100 shadow-sm rounded-2xl p-5 flex flex-col gap-5 justify-between">
                         <div className="flex justify-between items-center">
-                            <p className="text-xl text-primary font-bold">Storico tornei</p>
+                            <p className="text-xl text-primary font-bold">Tornei in corso</p>
                             <TournamentCreateButton />
                         </div>
                         {/* storico tornei */}
-                        <div className="h-full flex justify-center items-center">
-                            {/* contenuto scrollabile */}
-                            <div className="overflow-auto py-1 pe-1">
-                                <TournamentCard />
-                            </div>
-                        </div>
+                        <div className="h-50 overflow-auto py-1 pe-1 w-full">
+                        <TournamentCard />
+                    </div>
                     </div>
 
                     <div className="w-100 border-2 border-gray-100 shadow-sm rounded-2xl p-5 flex flex-col gap-5">

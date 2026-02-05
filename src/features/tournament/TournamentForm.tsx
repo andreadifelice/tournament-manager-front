@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { TournamentService } from "@/features/tournament/tournament.service"
 import { TeamService } from "@/features/team/team.service"
+import { TournamentTeamService } from "@/features/tournament_teams/tournament_teams.service"
 import type { Team } from "@/features/team/team.type"
 import { useEffect, useState } from "react"
 
@@ -12,6 +13,7 @@ const TournamentForm = () => {
     const [teamLoading, setTeamLoading] = useState(true)
     const [teamError, setTeamError] = useState<string | null>(null)
     const [selectedTeamIds, setSelectedTeamIds] = useState<number[]>([])
+    const [teamStatuses, setTeamStatuses] = useState<Record<number, string>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [success, setSuccess] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -26,16 +28,34 @@ const TournamentForm = () => {
             }
             setTeamLoading(false)
         }
+
         fetchTeams()
     }, [])
 
     const handleTeamToggle = (id: number) => {
-        setSelectedTeamIds((prev) =>
-            prev.includes(id) ? prev.filter((teamId) => teamId !== id) : [...prev, id]
-        )
+        setSelectedTeamIds((prev) => {
+            if (prev.includes(id)) {
+                const filtered = prev.filter((teamId) => teamId !== id)
+                setTeamStatuses((prevStatuses) => {
+                    const newStatuses = { ...prevStatuses }
+                    delete newStatuses[id]
+                    return newStatuses
+                })
+                return filtered
+            } else {
+                setTeamStatuses((prevStatuses) => ({ ...prevStatuses, [id]: "pending" }))
+                return [...prev, id]
+            }
+        })
     }
 
+    const handleTeamStatusChange = (teamId: number, status: string) => {
+        setTeamStatuses((prev) => ({ ...prev, [teamId]: status }))
+    }
+
+    
     const handleSubmit = async (e: React.FormEvent) => {
+        //previene il reload della pagina
         e.preventDefault()
 
         if (!formData.name || !formData.date || !formData.location) {
@@ -43,8 +63,8 @@ const TournamentForm = () => {
             return
         }
 
-        if (selectedTeamIds.length < 2) {
-            setError("Seleziona almeno 2 squadre")
+        if (selectedTeamIds.length === 0) {
+            setError("Seleziona almeno una squadra")
             return
         }
 
@@ -53,16 +73,30 @@ const TournamentForm = () => {
         setSuccess(null)
 
         try {
-            await TournamentService.create({
+            const newTournament = await TournamentService.create({
                 name: formData.name,
                 date: formData.date,
                 location: formData.location,
                 teams: selectedTeamIds,
             })
+
+            // Crea i tournament_teams per ogni squadra selezionata
+            for (const teamId of selectedTeamIds) {
+                await TournamentTeamService.create({
+                    tournament_id: newTournament.id,
+                    tournament_name: formData.name,
+                    tournament_date: formData.date,
+                    team_id: [teamId],
+                    status: teamStatuses[teamId] || "pending",
+                })
+            }
+
             setFormData({ name: "", date: "", location: "" })
             setSelectedTeamIds([])
+            setTeamStatuses({})
             setSuccess("Torneo creato con successo!")
             setTimeout(() => setSuccess(null), 3000)
+            // Ricarico la pagina una volta creata la squadra
             window.location.reload()
         } catch (err) {
             setError(err instanceof Error ? err.message : "Errore nella creazione")
@@ -110,7 +144,7 @@ const TournamentForm = () => {
                         </Field>
 
                         <Field className="flex flex-col gap-2">
-                            <FieldLabel>Squadre</FieldLabel>
+                            <FieldLabel>Squadre partecipanti</FieldLabel>
                             <div className="flex flex-col gap-2 rounded-md border border-input p-3">
                                 {teamLoading && (
                                     <p className="text-sm text-muted-foreground">Caricamento squadre...</p>
@@ -124,16 +158,37 @@ const TournamentForm = () => {
                                 {!teamLoading && !teamError && teams.length > 0 && (
                                     <div className="flex flex-col gap-2">
                                         {teams.map((team) => (
-                                            <label key={team.id} className="flex items-center gap-2 text-sm">
-                                                <input
-                                                    type="checkbox"
-                                                    className="h-4 w-4"
-                                                    checked={selectedTeamIds.includes(team.id)}
-                                                    onChange={() => handleTeamToggle(team.id)}
-                                                    disabled={isSubmitting}
-                                                />
-                                                {team.name}
-                                            </label>
+                                            <div key={team.id} className="flex flex-col gap-2 p-2 border border-gray-200 rounded">
+                                                <label className="flex items-center gap-2 text-sm">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="h-4 w-4"
+                                                        checked={selectedTeamIds.includes(team.id)}
+                                                        onChange={() => handleTeamToggle(team.id)}
+                                                        disabled={isSubmitting}
+                                                    />
+                                                    {team.name}
+                                                </label>
+                                                {selectedTeamIds.includes(team.id) && (
+                                                    <div className="ml-6 flex gap-2 items-center text-sm">
+                                                        <label htmlFor={`status-${team.id}`} className="font-medium">
+                                                            Stato:
+                                                        </label>
+                                                        <select
+                                                            id={`status-${team.id}`}
+                                                            value={teamStatuses[team.id] || "pending"}
+                                                            onChange={(e) => handleTeamStatusChange(team.id, e.target.value)}
+                                                            disabled={isSubmitting}
+                                                            className="px-2 py-1 border border-input rounded text-sm"
+                                                        >
+                                                            <option value="pending">In sospeso</option>
+                                                            <option value="active">Attiva</option>
+                                                            <option value="inactive">Inattiva</option>
+                                                            <option value="eliminated">Eliminata</option>
+                                                        </select>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ))}
                                     </div>
                                 )}
