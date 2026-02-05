@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import Teams from './pages/Teams'
 import MainLayout from './layouts/MainLayout'
+import Tournaments from './pages/Tournaments'
 
 
 // creo una costante per poter navigare con le routes tra le pagine che vado a creare
@@ -26,6 +27,16 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Teams />
+      }
+    ]
+  },
+  {
+    path: '/tournaments',
+    element:<MainLayout/>,
+    children: [
+      {
+        index: true,
+        element: <Tournaments />
       }
     ]
   },

@@ -1,10 +1,9 @@
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { TournamentService } from "@/features/tournament/tournament.service"
 import type { Tournament } from "@/features/tournament/tournament.type"
-import { BoxIcon } from "lucide-react"
+import { BoxIcon, LoaderCircle, OctagonAlert } from "lucide-react"
 import { useEffect, useState } from "react"
-import TournamentCreateButton from "../buttons/TournamentCreateButton"
-import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "../ui/empty"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "../../components/ui/empty"
 
 const TournamentCard = () => {
     const [tournaments, setTournaments] = useState<Tournament[]>([])
@@ -23,34 +22,54 @@ const TournamentCard = () => {
                 setTournaments(pastTournaments)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Errore nel caricamento")
-            } finally {
-                setLoading(false)
-            }
+            } 
+            setLoading(false)
         }
 
         fetchTournaments()
     }, [])
     
-    if (loading) return <div className="px-4 min-h-lvh max-w-4xl mx-auto flex items-center justify-center">caricamento...</div>
+    /* gestione caricamento degli elementi */
+    if (loading){
+        return (
+            <Empty>
+                <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                        <LoaderCircle className="animate-spin" />
+                    </EmptyMedia>
+                    <EmptyTitle>Caricamento in corso</EmptyTitle>
+                </EmptyHeader>
+            </Empty>
+        )
+    }
 
     /* gestione per avviso di elementi non presenti */
     if (tournaments.length === 0) {
         return (
-                <Empty>
-                    <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                            <BoxIcon/>
-                        </EmptyMedia>
-                        <EmptyTitle>Nessuno torneo presente al momento</EmptyTitle>
-                    </EmptyHeader>
-                    <EmptyContent>
-                        <TournamentCreateButton />
-                    </EmptyContent>
-                </Empty>
+            <Empty>
+                <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                        <BoxIcon/>
+                    </EmptyMedia>
+                    <EmptyTitle>Nessun torneo presente al momento</EmptyTitle>
+                </EmptyHeader>
+            </Empty>
         )
     }
 
-    if (error) return <div className="px-4 min-h-lvh max-w-4xl mx-auto flex items-center justify-center text-red-500">{error}</div>
+    /* gestione errore caricamento degli elementi */
+    if (error){
+        return(
+            <Empty>
+                <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                        <OctagonAlert/>
+                    </EmptyMedia>
+                    <EmptyTitle>{error}</EmptyTitle>
+                </EmptyHeader>
+            </Empty>
+        )
+    }
 
     
     return (

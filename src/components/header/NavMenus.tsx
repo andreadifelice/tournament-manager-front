@@ -11,6 +11,10 @@ const NavMenus = () => {
         {
             link: '/teams',
             name: 'Squadre'
+        },
+        {
+            link: '/tournaments',
+            name: 'Tornei'
         }
     ]
 

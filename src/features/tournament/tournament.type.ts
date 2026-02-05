@@ -4,6 +4,7 @@ export type Tournament = {
     name: string;
     date?: string;
     location?: string;
+    teams?: number[];
 }
 
 export type ServerTournament = {
