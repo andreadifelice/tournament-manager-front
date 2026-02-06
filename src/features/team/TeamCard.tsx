@@ -20,6 +20,7 @@ const TeamCard = () => {
     const [formData, setFormData] = useState({ name: "", power: "" })
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [deleteError, setDeleteError] = useState<string | null>(null)
 
 
 
@@ -69,6 +70,7 @@ const TeamCard = () => {
     // gestione per eliminazione del team
     const handleDelete = (team: Team) => {
         setDeleting(team)
+        setDeleteError(null) // Resetta l'errore quando si apre la modale
         setIsDeleteModalOpen(true)
     }
     //Conferma eliminazione
@@ -80,7 +82,11 @@ const TeamCard = () => {
             setIsDeleteModalOpen(false)
             setDeleting(null)
         } catch (err) {
-            console.error("Errore nell'eliminazione:", err)
+            if (err instanceof Error) {
+                setDeleteError(err.message)
+            } else {
+                setDeleteError("Si è verificato un errore sconosciuto.")
+            }
         }
     }
     
@@ -229,28 +235,20 @@ const TeamCard = () => {
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Elimina squadra</DialogTitle>
+                        <DialogTitle>Conferma Eliminazione</DialogTitle>
                         <DialogDescription>
-                            Sei sicuro di voler eliminare la squadra {deleting ? ` "${deleting.name}"` : ""}?
+                            Sei sicuro di voler eliminare la squadra? L'azione è irreversibile.
                         </DialogDescription>
+                        {deleteError && (
+                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                                <strong className="font-bold">Errore! </strong>
+                                <span className="block sm:inline">{deleteError}</span>
+                            </div>
+                        )}
                     </DialogHeader>
                     <DialogFooter>
-                        {/* annulla eliminazione */}
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => setIsDeleteModalOpen(false)}
-                        >
-                            Annulla
-                        </Button>
-                        {/* conferma eliminazione */}
-                        <Button 
-                            type="button" 
-                            variant="destructive" 
-                            onClick={handleDeleteConfirm}
-                        >
-                            Elimina
-                        </Button>
+                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Annulla</Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirm}>Elimina</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

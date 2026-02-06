@@ -9,7 +9,7 @@ const Teams = () => {
         <DivMax4>
             <DivGrid>
                 {/* form creazione squadre */}
-                <DivFlex>
+                <DivFlex className="h-fit">
                     <p className="text-xl text-primary font-bold">Crea la tua squadra</p>
                     <div className="w-full h-full flex justify-center items-start">
                         <TeamForm />
