@@ -5,8 +5,8 @@ import ThemeProvider from './context/ThemeContext'
 import './index.css'
 import MainLayout from './layouts/MainLayout'
 import HomePage from './pages/HomePage'
-import Teams from './pages/Teams'
-import Tournaments from './pages/Tournaments'
+import TeamPage from './pages/TeamPage'
+import TournamentPage from './pages/TournamentPage'
 
 
 // creo una costante per poter navigare con le routes tra le pagine che vado a creare
@@ -20,13 +20,13 @@ const router = createBrowserRouter([
         element: <HomePage />
       },
       {
-    path: '/teams',
-    element:<Teams />,
-  },
-  {
-    path: '/tournaments',
-    element:<Tournaments />,
-  },
+        path: '/teams',
+        element:<TeamPage />,
+      },
+      {
+        path: '/tournaments',
+        element:<TournamentPage />,
+      },
     ]
   },
 ])
