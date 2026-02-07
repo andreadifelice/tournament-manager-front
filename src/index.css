@@ -189,6 +189,7 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* fondamentale per settare il colore del tema nel sito */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -198,7 +199,34 @@
     letter-spacing: var(--tracking-normal);
   }
   
+  
   .dark .logo-soccer {
     filter: brightness(0) invert(1)
+  }
+
+  /* personalizzazione della scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+    opacity: 0.8;
+  }
+  
+  /* scrollbar per Firefox */
+  * {
+    scrollbar-color: var(--primary) var(--background);
+    scrollbar-width: thin;
   }
 }

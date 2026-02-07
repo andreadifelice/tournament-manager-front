@@ -2,10 +2,10 @@ import { useTheme } from "@/context/ThemeContext"
 import { MoonIcon, SunIcon } from "lucide-react"
 import { Switch } from "../ui/switch"
 
-const ToggleTheme = () => {
+const ThemeButton = () => {
     const themeContext = useTheme()
     return (
-        <label className="flex items-center gap-2 select-none">
+        <label className="flex items-center gap-2 select-none w-fit">
             <SunIcon className="size-4" />
             <Switch
                 checked={themeContext?.theme === 'dark'}
@@ -16,4 +16,4 @@ const ToggleTheme = () => {
     )
 }
 
-export default ToggleTheme
+export default ThemeButton

@@ -11,13 +11,13 @@ const ThemeProvider = ({ children }: React.PropsWithChildren) => {
 
     const [theme, setTheme] = useState<ThemeContextType['theme']>();
 
-    // inital state from storage
+    // inizializzo lo storage del tema
     useEffect(() => {
         const theme = localStorage.getItem('theme') || 'light';
         setTheme(theme as ThemeContextType['theme']);
     }, [])
 
-    // update html and storage
+    // aggiorno l'html e lo storage
     useEffect(() => {
         if (theme) {
             const html = document.querySelector('html');
@@ -36,6 +36,7 @@ const ThemeProvider = ({ children }: React.PropsWithChildren) => {
         setTheme(newTheme);
     }
 
+    /* provider del tema */
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
             {children}
@@ -45,6 +46,7 @@ const ThemeProvider = ({ children }: React.PropsWithChildren) => {
 
 export default ThemeProvider
 
+/* utility per themeprovider */
 export function useTheme() {
     const context = useContext(ThemeContext);
     if (!context) {
