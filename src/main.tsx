@@ -7,6 +7,7 @@ import MainLayout from './layouts/MainLayout'
 import HomePage from './pages/HomePage'
 import TeamPage from './pages/TeamPage'
 import TournamentPage from './pages/TournamentPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 
 // creo una costante per poter navigare con le routes tra le pagine che vado a creare
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       },
     ]
   },
+  {
+    path:'*',
+    element: <NotFoundPage />
+  }
 ])
 
 createRoot(document.getElementById('root')!).render(
