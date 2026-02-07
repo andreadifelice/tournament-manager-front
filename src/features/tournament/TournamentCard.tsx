@@ -77,7 +77,7 @@ const TournamentCard = () => {
     return (
         <ItemGroup className="w-full gap-2">
             {tournaments.map((tournament) => (
-                <Item key={tournament.id} variant="outline" className="border-2 border-gray-100 shadow-sm rounded-2xl">
+                <Item key={tournament.id} variant="outline" className="border-2 shadow-gray-100 shadow-sm rounded-2xl">
                     <ItemContent className="gap-1">
                         <ItemTitle className="text-xl font-bold">{tournament.name}</ItemTitle>
                         <div className="flex flex-col justify-between">

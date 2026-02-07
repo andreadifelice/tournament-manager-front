@@ -65,8 +65,6 @@ const TeamCard = () => {
         }
     }
 
-
-
     // gestione per eliminazione del team
     const handleDelete = (team: Team) => {
         setDeleting(team)
@@ -137,10 +135,9 @@ const TeamCard = () => {
     
     return (
         <>
-            {/* form creazione squadra */}
             <ItemGroup className="w-full gap-2">
                 {teams.map((team) => (
-                    <Item key={team.id} variant="outline" className="border-2 border-gray-100 shadow-sm rounded-2xl">
+                    <Item key={team.id} variant="outline" className="border-2 shadow-gray-100 shadow-sm rounded-2xl">
                         <ItemContent className="gap-1">
                             <ItemTitle>{team.name}</ItemTitle>
                             <ItemDescription>Potenza: {team.power}</ItemDescription>

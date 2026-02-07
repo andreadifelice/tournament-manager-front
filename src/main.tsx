@@ -1,10 +1,11 @@
-import './index.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import HomePage from './pages/HomePage'
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import Teams from './pages/Teams'
+import ThemeProvider from './context/ThemeContext'
+import './index.css'
 import MainLayout from './layouts/MainLayout'
+import HomePage from './pages/HomePage'
+import Teams from './pages/Teams'
 import Tournaments from './pages/Tournaments'
 
 
@@ -17,33 +18,23 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />
-      }
-    ]
-  },
-  {
-    path: '/teams',
-    element:<MainLayout/>,
-    children: [
+      },
       {
-        index: true,
-        element: <Teams />
-      }
-    ]
+    path: '/teams',
+    element:<Teams />,
   },
   {
     path: '/tournaments',
-    element:<MainLayout/>,
-    children: [
-      {
-        index: true,
-        element: <Tournaments />
-      }
+    element:<Tournaments />,
+  },
     ]
   },
 ])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router}/>
+      <ThemeProvider>
+        <RouterProvider router={router}/>
+      </ThemeProvider>
   </StrictMode>,
 )

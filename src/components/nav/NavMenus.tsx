@@ -29,7 +29,7 @@ const NavMenus = () => {
             <div className="flex flex-1 justify-between items-center px-4">
                     <div className="flex items-center">
                         <NavLink to={'/'}>
-                            <img src="../public/logo_soccer.svg" className="w-18 hover:inset-shadow-sm inset-shadow-gray-200 rounded-4xl p-2"/>
+                            <img src="../public/logo_soccer.svg" className="w-18 hover:inset-shadow-sm rounded-4xl p-2 logo-soccer"/>
                         </NavLink>
                         <p className="font-bold text-xl pl-2 hidden md:flex">SoccerBall</p>
                     </div>
