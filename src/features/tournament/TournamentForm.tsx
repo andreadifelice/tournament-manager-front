@@ -1,31 +1,28 @@
 import { Button } from "@/components/ui/button"
+import {
+    Combobox,
+    ComboboxChip,
+    ComboboxChips,
+    ComboboxChipsInput,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxItem,
+    ComboboxList,
+    ComboboxValue,
+    useComboboxAnchor,
+} from "@/components/ui/combobox"
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  ComboboxChips,
-  ComboboxChip,
-  ComboboxChipsInput,
-  useComboboxAnchor,
-} from "@/components/ui/combobox"
-import { TournamentService } from "@/features/tournament/tournament.service"
 import { TeamService } from "@/features/team/team.service"
-import { TournamentTeamService } from "@/features/tournament_teams/tournament_teams.service"
 import type { Team } from "@/features/team/team.type"
-import { useEffect, useRef, useState } from "react"
+import { TournamentService } from "@/features/tournament/tournament.service"
+import { TournamentTeamService } from "@/features/tournament_teams/tournament_teams.service"
+import { useEffect, useState } from "react"
 
 const TournamentForm = () => {
     const anchorRef = useComboboxAnchor()
     const [formData, setFormData] = useState({ name: "", date: "", location: "" })
-    const [teams, setTeams] = useState<Team[]>([])
     const [availableTeams, setAvailableTeams] = useState<Team[]>([])
-    const [teamLoading, setTeamLoading] = useState(true)
-    const [teamError, setTeamError] = useState<string | null>(null)
     const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [success, setSuccess] = useState<string | null>(null)
@@ -35,14 +32,11 @@ const TournamentForm = () => {
         const fetchTeams = async () => {
             try {
                 // Carica tutte le squadre
-                const allTeams = await TeamService.list()
-                console.log("Squadre caricate:", allTeams)
-                setTeams(allTeams)
+                const teams = await TeamService.list()
                 
                 // Carica i tornei
                 const tournaments = await TournamentService.list()
-                console.log("Tornei caricati:", tournaments)
-                
+
                 const usedTeamIds = new Set<number>()
 
                 // Carica tournament_teams per tutti i tornei in parallelo
@@ -51,13 +45,10 @@ const TournamentForm = () => {
                 )
                 
                 const allTournamentTeams = await Promise.all(tournamentTeamsPromises)
-                console.log("Tutti i tournament_teams:", allTournamentTeams)
                 
                 // Estrai gli ID delle squadre
                 for (const ttArray of allTournamentTeams) {
                     for (const tt of ttArray) {
-                        console.log("Verificando tt.team_id:", tt.team_id, "tipo:", typeof tt.team_id)
-                        
                         if (tt.team_id) {
                             // Se è un array
                             if (Array.isArray(tt.team_id)) {
@@ -71,18 +62,12 @@ const TournamentForm = () => {
                     }
                 }
                 
-                console.log("Team IDs usati:", Array.from(usedTeamIds))
-                
                 // Filtra le squadre disponibili
-                const filtered = allTeams.filter((team) => !usedTeamIds.has(team.id))
-                console.log("availableTeams impostato a:", filtered)
-                
+                const filtered = teams.filter((team) => !usedTeamIds.has(team.id))
                 setAvailableTeams(filtered)
             } catch (err) {
-                console.error("Errore:", err)
-                setTeamError(err instanceof Error ? err.message : "Errore nel caricamento delle squadre")
+                console.error("Errore nel caricamento delle squadre:", err)
             }
-            setTeamLoading(false)
         }
 
         fetchTeams()
@@ -126,44 +111,54 @@ const TournamentForm = () => {
         setIsSubmitting(false)
     }
 
+    const fieldData = [
+        {
+            htmlfor: "name",
+            type:"text",
+            label: "Nome",
+            inputId: "name",
+            inputValue: formData.name,
+            inputPlaceholder: "Ex: Torneo Primavera"
+        },
+        {
+            htmlfor: "date",
+            type:"date",
+            label: "Data",
+            inputId: "date",
+            inputValue: formData.date,
+        },
+        {
+            htmlfor: "location",
+            type:"text",
+            label: "Luogo",
+            inputId: "location",
+            inputValue: formData.location,
+            inputPlaceholder: "Ex: Milano"
+        },
+    ]
+
+    const handleFieldChange = (fieldName: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [fieldName]: e.target.value })
+    }
+
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
             <FieldGroup>
                 <FieldSet>
                     <FieldGroup>
-                        <Field className="flex flex-col gap-2">
-                            <FieldLabel htmlFor="name">Nome torneo</FieldLabel>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                disabled={isSubmitting}
-                                placeholder="Ex: Torneo Primavera"
-                            />
-                        </Field>
-
-                        <Field className="flex flex-col gap-2">
-                            <FieldLabel htmlFor="date">Data</FieldLabel>
-                            <Input
-                                id="date"
-                                type="date"
-                                value={formData.date}
-                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                disabled={isSubmitting}
-                            />
-                        </Field>
-
-                        <Field className="flex flex-col gap-2">
-                            <FieldLabel htmlFor="location">Luogo</FieldLabel>
-                            <Input
-                                id="location"
-                                value={formData.location}
-                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                disabled={isSubmitting}
-                                placeholder="Ex: Milano"
-                            />
-                        </Field>
-
+                        {fieldData.map((field) =>
+                            <Field key={field.inputId} className="flex flex-col gap-2">
+                                <FieldLabel htmlFor={field.htmlfor}>{field.label} torneo</FieldLabel>
+                                <Input
+                                    id={field.inputId}
+                                    type={field.type}
+                                    value={field.inputValue}
+                                    onChange={handleFieldChange(field.inputId as keyof typeof formData)}
+                                    disabled={isSubmitting}
+                                    placeholder={field.inputPlaceholder}
+                                />
+                            </Field>
+                        )}
                         <Field className="flex flex-col gap-2">
                             <FieldLabel>Squadre partecipanti</FieldLabel>
                             <Combobox

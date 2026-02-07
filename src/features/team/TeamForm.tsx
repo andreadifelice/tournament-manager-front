@@ -41,37 +41,46 @@ const TeamForm = () => {
         setIsSubmitting(false)
     }
 
+    const fieldData = [
+        {
+            htmlfor: "name",
+            label: "Nome della",
+            inputId: "name",
+            inputValue: formData.name,
+            inputPlaceholder: "Ex: Milan"
+        },
+        {
+            htmlfor: "power",
+            label: "Potenza della",
+            inputId: "power",
+            type:"number",
+            inputValue: formData.power,
+            inputPlaceholder: "Ex: 2, 4, 8, 16"
+        },
+    ]
+    const handleFieldChange = (fieldName: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [fieldName]: e.target.value })
+    }
+
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
             {/* campo nome della squadra */}
             <FieldGroup>
                 <FieldSet>
                     <FieldGroup>
-
-                        {/* campo nome della squadra */}
-                        <Field className="flex flex-col gap-2">
-                            <FieldLabel htmlFor="name">Nome della squadra</FieldLabel>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                disabled={isSubmitting}
-                                placeholder="Ex: Milan"
-                            />
-                        </Field> 
-
-
-                        {/* campo potenza della squadra */}
-                        <Field className="flex flex-col gap-2">
-                            <FieldLabel htmlFor="power">Potenza della squadra</FieldLabel>
-                            <Input
-                                id="power"
-                                value={formData.power}
-                                onChange={(e) => setFormData({ ...formData, power: e.target.value })}
-                                disabled={isSubmitting}
-                                placeholder="Compresa tra 2, 4, 8, 16"
-                            />
-                        </Field> 
+                        {fieldData.map((field) =>
+                            <Field className="flex flex-col gap-2">
+                                <FieldLabel htmlFor={field.htmlfor}>{field.label} squadra</FieldLabel>
+                                <Input
+                                    id={field.inputId}
+                                    value={field.inputValue}
+                                    type={field.type}
+                                    onChange={handleFieldChange(field.inputId as keyof typeof formData)}
+                                    disabled={isSubmitting}
+                                    placeholder={field.inputPlaceholder}
+                                />
+                            </Field>
+                        )}
                     </FieldGroup>
                 </FieldSet>
             </FieldGroup>
